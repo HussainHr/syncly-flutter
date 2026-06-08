@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "376534112505",
+    "project_id": "syncly-flutter",
+    "storage_bucket": "syncly-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376534112505:android:bcc76a4c64569751d3ea28",
+        "android_client_info": {
+          "package_name": "com.example.syncly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhBqdy-PtzkezmVlvQ0w4g6a6GQq2VUz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
