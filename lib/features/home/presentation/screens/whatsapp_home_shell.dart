@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:syncly/core/repositories/auth_repository.dart';
 import 'package:syncly/core/widgets/logout_confirmation.dart';
 import 'package:syncly/core/widgets/exit_confirmation.dart';
-import 'package:syncly/features/chats/presentation/screens/chats_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/workspaces_page.dart';
 import 'package:syncly/core/widgets/custom_avatar.dart';
 import 'package:syncly/core/widgets/avatar_viewer.dart';
 import 'package:syncly/core/providers/auth_provider.dart';
@@ -18,18 +18,18 @@ class WhatsAppHomeShell extends ConsumerWidget {
     return ExitConfirmationScope(
       child: Scaffold(
         appBar: AppBar(
-          title: Builder(
-            builder: (context) {
-              return const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Syncly',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ],
-              );
-            },
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Syncly',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Text(
+                'Workspaces',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
           actions: [
             Builder(
@@ -88,7 +88,7 @@ class WhatsAppHomeShell extends ConsumerWidget {
             ),
           ],
         ),
-        body: const ChatsPage(embedded: true),
+        body: const WorkspacesPage(),
       ),
     );
   }

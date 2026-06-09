@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:syncly/features/auth/domain/entities/user_role.dart';
 
 enum PrivacyAudience {
   everyone,
@@ -36,6 +37,7 @@ class AppUser extends Equatable {
   final PrivacyAudience privacyAbout;
   final bool readReceiptsEnabled;
   final bool typingIndicatorEnabled;
+  final UserRole role;
 
   const AppUser({
     required this.uid,
@@ -55,6 +57,7 @@ class AppUser extends Equatable {
     this.privacyAbout = PrivacyAudience.everyone,
     this.readReceiptsEnabled = true,
     this.typingIndicatorEnabled = true,
+    this.role = UserRole.member,
   });
 
   @override
@@ -76,6 +79,7 @@ class AppUser extends Equatable {
         privacyAbout,
         readReceiptsEnabled,
         typingIndicatorEnabled,
+        role,
       ];
 }
 

@@ -13,6 +13,10 @@ import 'package:syncly/features/users/presentation/screens/my_profile_page.dart'
 import 'package:syncly/features/users/presentation/screens/user_profile_page.dart';
 import 'package:syncly/features/users/presentation/screens/users_page.dart';
 import 'package:syncly/features/settings/presentation/screens/settings_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/channel_detail_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/create_workspace_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/join_workspace_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/workspace_channels_page.dart';
 import 'package:syncly/core/repositories/auth_repository.dart';
 
 // ✅ Provider to track if app is initializing
@@ -88,7 +92,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsPage(embedded: false),
       ),
-
+      GoRoute(
+        path: '/workspaces/create',
+        builder: (context, state) => const CreateWorkspacePage(),
+      ),
+      GoRoute(
+        path: '/workspaces/join',
+        builder: (context, state) => const JoinWorkspacePage(),
+      ),
+      GoRoute(
+        path: '/workspaces/:workspaceId',
+        builder: (context, state) => WorkspaceChannelsPage(
+          workspaceId: state.pathParameters['workspaceId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/workspaces/:workspaceId/channels/:channelId',
+        builder: (context, state) => ChannelDetailPage(
+          workspaceId: state.pathParameters['workspaceId']!,
+          channelId: state.pathParameters['channelId']!,
+        ),
+      ),
     ],
   );
 });

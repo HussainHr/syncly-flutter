@@ -1,1 +1,26 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"syncly-flutter","appId":"1:376534112505:android:bcc76a4c64569751d3ea28","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"syncly-flutter","configurations":{"android":"1:376534112505:android:bcc76a4c64569751d3ea28","ios":"1:376534112505:ios:07f3783cce715052d3ea28"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "syncly-flutter",
+          "appId": "1:376534112505:android:bcc76a4c64569751d3ea28",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "syncly-flutter",
+          "configurations": {
+            "android": "1:376534112505:android:bcc76a4c64569751d3ea28",
+            "ios": "1:376534112505:ios:07f3783cce715052d3ea28"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

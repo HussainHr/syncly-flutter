@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:syncly/features/auth/domain/entities/user_role.dart';
+
 import '../../domain/entities/app_user.dart';
 
 class AppUserModel extends AppUser {
@@ -21,6 +23,7 @@ class AppUserModel extends AppUser {
     super.privacyAbout,
     super.readReceiptsEnabled,
     super.typingIndicatorEnabled,
+    super.role,
   });
 
   static DateTime _readDate(dynamic value, {DateTime? fallback}) {
@@ -59,6 +62,7 @@ class AppUserModel extends AppUser {
       privacyAbout: PrivacyAudience.fromString(json['privacyAbout'] as String?),
       readReceiptsEnabled: (json['readReceiptsEnabled'] as bool?) ?? true,
       typingIndicatorEnabled: (json['typingIndicatorEnabled'] as bool?) ?? true,
+      role: UserRole.fromString(json['role'] as String?),
     );
   }
 }

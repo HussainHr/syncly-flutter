@@ -1,0 +1,175 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function workspaceData(workspaceId) {
+      return get(/databases/$(database)/documents/workspaces/$(workspaceId)).data;
+    }
+
+    function isWorkspaceMember(workspaceId) {
+      return isSignedIn()
+        && request.auth.uid in workspaceData(workspaceId).memberUids;
+    }
+
+    function isWorkspaceOwner(workspaceId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    function isChatMember(chatId) {
+      return isSignedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+    }
+
+    // ─── Users ───────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(uid);
+      allow delete: if false;
+
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /blocked/{blockedUid} {
+        allow read, write: if isSelf(uid);
+      }
+    }
+
+    // ─── Workspaces ─────────────────────────────────────────────────────────
+    match /workspaces/{workspaceId} {
+      // Members can list their workspaces; any signed-in user can read by invite code to join.
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.auth.uid in request.resource.data.memberUids
+        && request.resource.data.memberCount == 1
+        && request.resource.data.inviteCode is string
+        && request.resource.data.name is string;
+
+      // Members can update; new users can join (add themselves to memberUids).
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.memberUids
+        || (
+          request.auth.uid in request.resource.data.memberUids
+          && !(request.auth.uid in resource.data.memberUids)
+        )
+      );
+
+      allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+
+      match /members/{memberId} {
+        allow read: if isWorkspaceMember(workspaceId);
+        allow create: if isSignedIn() && request.auth.uid == memberId;
+        allow update: if isSelf(memberId) && isWorkspaceMember(workspaceId);
+        allow delete: if false;
+      }
+
+      match /channels/{channelId} {
+        allow read: if isWorkspaceMember(workspaceId);
+
+        allow create: if isWorkspaceMember(workspaceId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.type == 'text'
+          && request.resource.data.name is string;
+
+        allow update: if isWorkspaceMember(workspaceId);
+        allow delete: if isWorkspaceOwner(workspaceId);
+
+        match /messages/{messageId} {
+          allow read: if isWorkspaceMember(workspaceId);
+          allow create: if isWorkspaceMember(workspaceId)
+            && request.resource.data.senderUid == request.auth.uid;
+          allow update: if isWorkspaceMember(workspaceId);
+          allow delete: if isWorkspaceMember(workspaceId);
+        }
+
+        match /typing/{uid} {
+          allow read: if isWorkspaceMember(workspaceId);
+          allow write: if isSelf(uid) && isWorkspaceMember(workspaceId);
+        }
+      }
+    }
+
+    // ─── Direct chats ───────────────────────────────────────────────────────
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.members;
+
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.members.size() == 2;
+
+      allow update: if isChatMember(chatId);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isChatMember(chatId);
+        allow create: if isChatMember(chatId)
+          && request.resource.data.senderUid == request.auth.uid;
+        allow update: if isChatMember(chatId);
+        allow delete: if isChatMember(chatId);
+      }
+
+      match /typing/{uid} {
+        allow read: if isChatMember(chatId);
+        allow write: if isSelf(uid) && isChatMember(chatId);
+      }
+    }
+
+    // ─── Notifications ──────────────────────────────────────────────────────
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.toUid == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.seen == false;
+
+      allow update: if isSignedIn() && resource.data.toUid == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ─── Friends ──────────────────────────────────────────────────────────────
+    match /friend_requests/{requestId} {
+      allow read: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid
+        || resource.data.toUid == request.auth.uid
+      );
+
+      allow create: if isSignedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.status == 'pending';
+
+      allow update: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid
+        || resource.data.toUid == request.auth.uid
+      );
+
+      allow delete: if false;
+    }
+
+    match /friendships/{friendshipId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.users;
+
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.users
+        && request.resource.data.users.size() == 2;
+
+      allow update: if false;
+      allow delete: if isSignedIn() && request.auth.uid in resource.data.users;
+    }
+  }
+}
