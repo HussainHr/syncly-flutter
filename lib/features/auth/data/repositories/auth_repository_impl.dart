@@ -47,20 +47,45 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await _remote.signUpWithEmail(email: email, password: password);
       await user.updateDisplayName(displayName);
-      try {
-        await upsertUserProfile(
-          firebaseUser: user,
-          displayName: displayName,
-          isOnline: true,
-          role: role,
-        );
-      } catch (_) {
-        // Firestore may not be configured yet; don't block auth.
-      }
+      await _upsertProfileWithRetry(
+        firebaseUser: user,
+        displayName: displayName,
+        isOnline: true,
+        role: role,
+      );
       return user;
     } on FirebaseAuthException {
       rethrow;
     }
+  }
+
+  Future<void> _upsertProfileWithRetry({
+    required User firebaseUser,
+    String? displayName,
+    String? photoUrl,
+    bool? isOnline,
+    UserRole? role,
+  }) async {
+    Object? lastError;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        await firebaseUser.getIdToken(true);
+        await upsertUserProfile(
+          firebaseUser: firebaseUser,
+          displayName: displayName,
+          photoUrl: photoUrl,
+          isOnline: isOnline,
+          role: role,
+        );
+        return;
+      } catch (e) {
+        lastError = e;
+        if (attempt < 2) {
+          await Future<void>.delayed(Duration(milliseconds: 250 * (attempt + 1)));
+        }
+      }
+    }
+    throw lastError ?? StateError('Failed to save user profile.');
   }
 
   @override

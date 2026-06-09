@@ -25,7 +25,7 @@ lib/
 │   ├── workspaces/ # Workspaces, channels, channel chat
 │   ├── users/      # Profile
 │   ├── settings/   # Theme, notifications toggle
-│   └── chats/      # Legacy 1:1 chat (kept, not in main nav)
+│   └── chats/      # Legacy 1:1 chat (kept)
 ```
 
 Feature modules follow **data → domain → presentation** clean architecture.
@@ -87,17 +87,6 @@ firebase deploy --only firestore:rules,firestore:indexes --project syncly-flutte
 - Channel notifications via Firestore inbox + local notification
 - Offline-lite: Firestore persistence + cached data banner
 - Profile and settings
-
-## Out of scope (client proposal items not built)
-
-- NestJS / custom backend API
-- LiveKit voice/video calling
-- Firebase Cloud Functions for server-side FCM fan-out
-- Firebase Storage for media
-- Isar / Hive local database
-- Google Sign-In (hidden in UI)
-- Friends/Users tabs (hidden from nav)
-- Polls, comments, REST sync to `admin.syncly.com`
 
 ## Notifications
 

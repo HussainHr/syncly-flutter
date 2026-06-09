@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:syncly/firebase_options.dart';
+import 'core/config/app_check_config.dart';
 import 'core/config/firestore_config.dart';
 import 'core/config/app_theme.dart';
 import 'core/widgets/offline_banner.dart';
@@ -21,6 +22,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await configureAppCheck();
 
     // Create a temporary notification service instance for background handling
     final notificationService = NotificationService();
@@ -38,6 +40,7 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await configureAppCheck();
   await configureFirestore();
 
   // Initialize Google Sign-In (google_sign_in v7+).

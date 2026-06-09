@@ -9,6 +9,8 @@ abstract class UsersRepository {
 
   Future<AppUser?> getUserByUid(String uid);
 
+  Stream<AppUser?> watchUserByUid(String uid);
+
   Future<void> updateMyProfile({
     required String uid,
     String? displayName,

@@ -24,6 +24,9 @@ class UsersRepositoryImpl implements UsersRepository {
   Future<AppUser?> getUserByUid(String uid) => _remote.getUserByUid(uid);
 
   @override
+  Stream<AppUser?> watchUserByUid(String uid) => _remote.watchUserByUid(uid);
+
+  @override
   Future<void> updateMyProfile({
     required String uid,
     String? displayName,

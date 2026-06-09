@@ -15,9 +15,12 @@ class WorkspacesPage extends ConsumerWidget {
     final me = ref.watch(currentUserProvider);
     final workspacesAsync = ref.watch(myWorkspacesProvider);
     final profileAsync = me == null ? null : ref.watch(userProfileProvider(me.uid));
-
-    final appRole = profileAsync?.valueOrNull?.role ?? UserRole.member;
-    final isHost = appRole == UserRole.host;
+    final roleResolved = profileAsync?.hasValue == true;
+    final isHost = profileAsync?.maybeWhen(
+          data: (profile) => (profile?.role ?? UserRole.member) == UserRole.host,
+          orElse: () => false,
+        ) ??
+        false;
 
     return Scaffold(
       body: workspacesAsync.when(
@@ -25,6 +28,10 @@ class WorkspacesPage extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Failed to load workspaces: $e')),
         data: (workspaces) {
           if (workspaces.isEmpty) {
+            if (!roleResolved) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
             return EmptyState(
               icon: Icons.hub_outlined,
               title: 'No workspaces yet',
@@ -91,23 +98,32 @@ class WorkspacesPage extends ConsumerWidget {
       ),
       floatingActionButton: workspacesAsync.maybeWhen(
         data: (workspaces) {
+          if (!roleResolved) return null;
+
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              FloatingActionButton.extended(
-                heroTag: 'join_workspace',
-                onPressed: () => context.push('/workspaces/join'),
-                icon: const Icon(Icons.login),
-                label: const Text('Join'),
-              ),
+              if (!isHost)
+                FloatingActionButton.extended(
+                  heroTag: 'join_workspace',
+                  onPressed: () => context.push('/workspaces/join'),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Join'),
+                ),
               if (isHost) ...[
-                const SizedBox(height: 12),
                 FloatingActionButton.extended(
                   heroTag: 'create_workspace',
                   onPressed: () => context.push('/workspaces/create'),
                   icon: const Icon(Icons.add),
                   label: const Text('Create'),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton.extended(
+                  heroTag: 'join_workspace',
+                  onPressed: () => context.push('/workspaces/join'),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Join'),
                 ),
               ],
             ],

@@ -51,6 +51,15 @@ class UsersRemoteDataSource {
     return AppUserModel.fromFirestore(data, uid: snap.id);
   }
 
+  Stream<AppUserModel?> watchUserByUid(String uid) {
+    return _users.doc(uid).snapshots().map((snap) {
+      if (!snap.exists) return null;
+      final data = snap.data();
+      if (data == null) return null;
+      return AppUserModel.fromFirestore(data, uid: snap.id);
+    });
+  }
+
   Future<void> updateMyProfile({
     required String uid,
     String? displayName,
