@@ -12,6 +12,7 @@ class ChannelModel extends Channel {
     required super.createdAt,
     required super.updatedAt,
     super.lastMessage,
+    super.unread,
   });
 
   static DateTime _readDate(dynamic value, {DateTime? fallback}) {
@@ -56,6 +57,12 @@ class ChannelModel extends Channel {
       createdAt: createdAt,
       updatedAt: _readDate(data['updatedAt'], fallback: createdAt),
       lastMessage: _lastMessageFromMap(lastMap),
+      unread: _unreadFromMap(data['unread'] as Map<String, dynamic>?),
     );
+  }
+
+  static Map<String, int> _unreadFromMap(Map<String, dynamic>? map) {
+    if (map == null || map.isEmpty) return const <String, int>{};
+    return map.map((key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0));
   }
 }

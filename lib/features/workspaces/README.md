@@ -19,7 +19,16 @@
 - `type` (string): `text`
 - `createdBy` (uid)
 - `lastMessage` (map, optional)
+- `unread` (map<uid, int>)
 - `createdAt`, `updatedAt` (timestamp)
+
+### `workspaces/{workspaceId}/channels/{channelId}/messages/{messageId}`
+- `senderUid`, `type` (`text`|`image`), `text`
+- `mediaBase64` (optional, image)
+- `createdAt`, `deliveredTo[]`, `readBy[]`
+
+### `workspaces/{workspaceId}/channels/{channelId}/typing/{uid}`
+- `isTyping` (bool), `updatedAt` (timestamp)
 
 ### Query patterns
 - My workspaces: `workspaces where memberUids array-contains myUid`

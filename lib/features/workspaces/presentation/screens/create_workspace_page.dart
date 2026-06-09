@@ -32,7 +32,7 @@ class _CreateWorkspacePageState extends ConsumerState<CreateWorkspacePage> {
 
     if (workspace != null) {
       showToast('Workspace created');
-      context.go('/workspaces/${workspace.id}');
+      context.pushReplacement('/workspaces/${workspace.id}');
     }
   }
 

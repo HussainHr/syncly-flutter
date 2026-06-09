@@ -33,7 +33,7 @@ class _JoinWorkspacePageState extends ConsumerState<JoinWorkspacePage> {
 
     if (workspace != null) {
       showToast('Joined ${workspace.name}');
-      context.go('/workspaces/${workspace.id}');
+      context.pushReplacement('/workspaces/${workspace.id}');
     }
   }
 

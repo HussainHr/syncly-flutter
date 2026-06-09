@@ -107,6 +107,8 @@ class WorkspacesRemoteDataSource {
     final memberRef = _membersCol(workspaceRef.id).doc(createdBy);
     final now = FieldValue.serverTimestamp();
 
+    // Workspace + member in one transaction. Channel is created after commit
+    // because security rules read committed state (not pending txn writes).
     await _db.runTransaction((tx) async {
       tx.set(workspaceRef, {
         'name': trimmedName,
@@ -124,14 +126,15 @@ class WorkspacesRemoteDataSource {
         'role': 'owner',
         'joinedAt': now,
       });
+    });
 
-      tx.set(generalChannelRef, {
-        'name': 'general',
-        'type': 'text',
-        'createdBy': createdBy,
-        'createdAt': now,
-        'updatedAt': now,
-      });
+    await generalChannelRef.set({
+      'name': 'general',
+      'type': 'text',
+      'createdBy': createdBy,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'unread': <String, int>{},
     });
 
     final created = await workspaceRef.get();
@@ -168,24 +171,29 @@ class WorkspacesRemoteDataSource {
       }
 
       final memberSnap = await tx.get(memberRef);
-      if (memberSnap.exists) return;
-
       final memberUids =
           (wsSnap.data()?['memberUids'] as List?)?.cast<String>() ?? <String>[];
-      if (memberUids.contains(myUid)) return;
+      final alreadyListed = memberUids.contains(myUid);
+      final memberDocExists = memberSnap.exists;
 
-      tx.set(memberRef, {
-        'uid': myUid,
-        'displayName': myDisplayName,
-        'role': 'member',
-        'joinedAt': now,
-      });
+      if (alreadyListed && memberDocExists) return;
 
-      tx.update(workspaceRef, {
-        'memberUids': FieldValue.arrayUnion([myUid]),
-        'memberCount': FieldValue.increment(1),
-        'updatedAt': now,
-      });
+      if (!memberDocExists) {
+        tx.set(memberRef, {
+          'uid': myUid,
+          'displayName': myDisplayName,
+          'role': 'member',
+          'joinedAt': now,
+        });
+      }
+
+      if (!alreadyListed) {
+        tx.update(workspaceRef, {
+          'memberUids': FieldValue.arrayUnion([myUid]),
+          'memberCount': FieldValue.increment(1),
+          'updatedAt': now,
+        });
+      }
     });
 
     final updated = await workspaceRef.get();
@@ -219,6 +227,7 @@ class WorkspacesRemoteDataSource {
       'createdBy': createdBy,
       'createdAt': now,
       'updatedAt': now,
+      'unread': <String, int>{},
     });
     await _workspaceDoc(workspaceId).update({'updatedAt': now});
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syncly/core/utils/toast_message.dart';
 import 'package:syncly/core/widgets/empty_state.dart';
+import 'package:syncly/core/providers/auth_provider.dart';
 import 'package:syncly/features/workspaces/domain/entities/workspace_member.dart';
 import 'package:syncly/features/workspaces/presentation/providers/workspace_actions_controller.dart';
 import 'package:syncly/features/workspaces/presentation/providers/workspaces_streams.dart';
@@ -95,6 +96,7 @@ class WorkspaceChannelsPage extends ConsumerWidget {
     final channelsAsync = ref.watch(workspaceChannelsProvider(workspaceId));
     final membershipAsync = ref.watch(myWorkspaceMembershipProvider(workspaceId));
     final actionsState = ref.watch(workspaceActionsControllerProvider);
+    final me = ref.watch(currentUserProvider);
 
     ref.listen(workspaceActionsControllerProvider, (prev, next) {
       final msg = next.error;
@@ -108,6 +110,16 @@ class WorkspaceChannelsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
         title: workspaceAsync.when(
           loading: () => const Text('Channels'),
           error: (_, __) => const Text('Channels'),
@@ -149,6 +161,7 @@ class WorkspaceChannelsPage extends ConsumerWidget {
             itemBuilder: (context, index) {
               final channel = channels[index];
               final preview = channel.lastMessage?.text.trim();
+              final unread = me == null ? 0 : channel.unreadFor(me.uid);
               return ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 leading: Icon(
@@ -157,7 +170,9 @@ class WorkspaceChannelsPage extends ConsumerWidget {
                 ),
                 title: Text(
                   channel.displayName,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    fontWeight: unread > 0 ? FontWeight.w900 : FontWeight.w800,
+                  ),
                 ),
                 subtitle: preview == null || preview.isEmpty
                     ? const Text('Text channel')
@@ -165,8 +180,31 @@ class WorkspaceChannelsPage extends ConsumerWidget {
                         preview,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.w400,
+                        ),
                       ),
-                trailing: const Icon(Icons.chevron_right_rounded),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (unread > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
                 onTap: () => context.push(
                   '/workspaces/$workspaceId/channels/${channel.id}',
                 ),

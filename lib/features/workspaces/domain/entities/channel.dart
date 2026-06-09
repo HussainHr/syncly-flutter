@@ -28,6 +28,7 @@ class Channel extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final ChannelLastMessage? lastMessage;
+  final Map<String, int> unread;
 
   const Channel({
     required this.id,
@@ -38,6 +39,7 @@ class Channel extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.lastMessage,
+    this.unread = const <String, int>{},
   });
 
   String get displayName => name.startsWith('#') ? name : '#$name';
@@ -52,5 +54,8 @@ class Channel extends Equatable {
         createdAt,
         updatedAt,
         lastMessage,
+        unread,
       ];
+
+  int unreadFor(String uid) => unread[uid] ?? 0;
 }

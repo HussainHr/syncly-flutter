@@ -13,7 +13,7 @@ import 'package:syncly/features/users/presentation/screens/my_profile_page.dart'
 import 'package:syncly/features/users/presentation/screens/user_profile_page.dart';
 import 'package:syncly/features/users/presentation/screens/users_page.dart';
 import 'package:syncly/features/settings/presentation/screens/settings_page.dart';
-import 'package:syncly/features/workspaces/presentation/screens/channel_detail_page.dart';
+import 'package:syncly/features/workspaces/presentation/screens/channel_room_page.dart';
 import 'package:syncly/features/workspaces/presentation/screens/create_workspace_page.dart';
 import 'package:syncly/features/workspaces/presentation/screens/join_workspace_page.dart';
 import 'package:syncly/features/workspaces/presentation/screens/workspace_channels_page.dart';
@@ -108,7 +108,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/workspaces/:workspaceId/channels/:channelId',
-        builder: (context, state) => ChannelDetailPage(
+        builder: (context, state) => ChannelRoomPage(
           workspaceId: state.pathParameters['workspaceId']!,
           channelId: state.pathParameters['channelId']!,
         ),

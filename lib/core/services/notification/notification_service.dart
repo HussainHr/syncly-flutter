@@ -288,6 +288,14 @@ class NotificationService {
     synclyLogger.log("🧭 Navigating based on type: $type");
 
     final router = ref!.read(appRouterProvider);
+    if (type == 'channel_message') {
+      final workspaceId = (data['workspaceId'] ?? '').toString();
+      final channelId = (data['channelId'] ?? '').toString();
+      if (workspaceId.isEmpty || channelId.isEmpty) return;
+      router.push('/workspaces/$workspaceId/channels/$channelId');
+      return;
+    }
+
     if (type == 'message') {
       final chatId = (data['chatId'] ?? '').toString();
       final fromUid = (data['fromUid'] ?? '').toString();
