@@ -31,6 +31,7 @@ class NotificationService {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _inboxSub;
   StreamSubscription<String>? _tokenSub;
   final Set<String> _processedInboxIds = <String>{};
+  final Set<String> _shownNotificationIds = <String>{};
 
   NotificationService([this.ref]);
 
@@ -96,6 +97,7 @@ class NotificationService {
       await _inboxSub?.cancel();
       _inboxSub = null;
       _processedInboxIds.clear();
+      _shownNotificationIds.clear();
     } else {
       _startInboxNotifications();
     }
@@ -169,15 +171,47 @@ class NotificationService {
     }
   }
 
+  String _notificationKey(Map<String, dynamic>? data, {String? fallbackId}) {
+    final docId = (data?['id'] ?? '').toString();
+    if (docId.isNotEmpty) return docId;
+    final messageId = (data?['messageId'] ?? '').toString();
+    if (messageId.isNotEmpty) return messageId;
+    return fallbackId ?? '';
+  }
+
+  bool _alreadyShown(String key) {
+    if (key.isEmpty) return false;
+    return _shownNotificationIds.contains(key) || _processedInboxIds.contains(key);
+  }
+
+  void _markShown(String key) {
+    if (key.isEmpty) return;
+    _shownNotificationIds.add(key);
+    if (_shownNotificationIds.length > 200) {
+      _shownNotificationIds.remove(_shownNotificationIds.first);
+    }
+  }
+
   Future<void> _handleMessage(
     RemoteMessage message, {
     bool showLocalNotification = false,
   }) async {
     try {
+      final dedupeKey = _notificationKey(
+        message.data,
+        fallbackId: message.messageId,
+      );
+      if (showLocalNotification && _alreadyShown(dedupeKey)) {
+        synclyLogger.log('Skipping duplicate FCM notification: $dedupeKey');
+        return;
+      }
+
       final model = LocalNotificationModel(
         id:
-            message.messageId ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
+            dedupeKey.isNotEmpty
+                ? dedupeKey
+                : message.messageId ??
+                    DateTime.now().millisecondsSinceEpoch.toString(),
         title: message.notification?.title ?? 'New Notification',
         body: message.notification?.body ?? '',
         imageUrl:
@@ -192,6 +226,7 @@ class NotificationService {
 
       if (showLocalNotification) {
         await _showLocalNotification(model);
+        _markShown(model.id);
       }
     } catch (e, s) {
       synclyLogger.log("❌ Error handling message: $e\n$s");
@@ -389,7 +424,7 @@ class NotificationService {
 
       final batch = _firestore.batch();
       for (final d in newlyAdded) {
-        if (_processedInboxIds.contains(d.id)) continue;
+        if (_processedInboxIds.contains(d.id) || _alreadyShown(d.id)) continue;
         _processedInboxIds.add(d.id);
 
         final data = d.data();
@@ -412,6 +447,7 @@ class NotificationService {
 
         await NotificationStorageService.saveNotification(model);
         await _showLocalNotification(model);
+        _markShown(d.id);
 
         batch.set(d.reference, {
           'seen': true,

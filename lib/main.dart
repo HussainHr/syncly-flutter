@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:syncly/firebase_options.dart';
+import 'core/config/firestore_config.dart';
 import 'core/config/app_theme.dart';
+import 'core/widgets/offline_banner.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/presence_provider.dart';
 import 'core/services/notification/notification_service.dart';
@@ -36,6 +38,7 @@ Future<void> main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await configureFirestore();
 
   // Initialize Google Sign-In (google_sign_in v7+).
   await GoogleSignIn.instance.initialize();
@@ -97,6 +100,14 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        return Column(
+          children: [
+            const OfflineBanner(),
+            Expanded(child: child ?? const SizedBox.shrink()),
+          ],
+        );
+      },
     );
   }
 }

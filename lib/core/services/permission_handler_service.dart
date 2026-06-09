@@ -26,7 +26,7 @@ class PermissionService {
           _showPermissionDialog(
             context,
             'Camera Permission Required',
-            'syncly needs camera access to take photos for polls and profile. Please enable it in Settings.',
+            'Syncly needs camera access to take photos for channels and profile. Please enable it in Settings.',
           );
           return false;
         }
@@ -71,7 +71,7 @@ class PermissionService {
               _showPermissionDialog(
                 context,
                 'Photos Permission Required',
-                'syncly needs access to your photos to select images for polls and profile. Please enable it in Settings.',
+                'Syncly needs access to your photos to select images for channels and profile. Please enable it in Settings.',
               );
               return false;
             }
