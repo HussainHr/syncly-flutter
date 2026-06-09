@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException, User;
 
 import '../../domain/entities/chat_user.dart';
+import '../../domain/entities/user_role.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 
@@ -41,6 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    required UserRole role,
   }) async {
     try {
       final user = await _remote.signUpWithEmail(email: email, password: password);
@@ -50,6 +52,7 @@ class AuthRepositoryImpl implements AuthRepository {
           firebaseUser: user,
           displayName: displayName,
           isOnline: true,
+          role: role,
         );
       } catch (_) {
         // Firestore may not be configured yet; don't block auth.
@@ -95,12 +98,14 @@ class AuthRepositoryImpl implements AuthRepository {
     String? displayName,
     String? photoUrl,
     bool? isOnline,
+    UserRole? role,
   }) {
     return _remote.upsertUserProfile(
       firebaseUser: firebaseUser,
       displayName: displayName,
       photoUrl: photoUrl,
       isOnline: isOnline,
+      role: role,
     );
   }
 

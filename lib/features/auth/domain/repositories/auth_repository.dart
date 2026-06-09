@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' show User;
 
 import '../entities/chat_user.dart';
+import '../entities/user_role.dart';
 
 abstract class AuthRepository {
   Stream<User?> authStateChanges();
@@ -16,6 +17,7 @@ abstract class AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    required UserRole role,
   });
 
   Future<User> signInWithGoogle();
@@ -29,6 +31,7 @@ abstract class AuthRepository {
     String? displayName,
     String? photoUrl,
     bool? isOnline,
+    UserRole? role,
   });
 
   Future<void> setOnlineStatus({

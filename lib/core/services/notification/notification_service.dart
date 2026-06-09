@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:developer' as synclyLogger;
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -207,6 +207,7 @@ class NotificationService {
             'This channel is used for important notifications.',
         importance: Importance.max,
         priority: Priority.high,
+        icon: 'ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -218,12 +219,18 @@ class NotificationService {
         iOS: iosDetails,
       );
 
+      final notificationId = model.id.hashCode & 0x7fffffff;
+      final payload = jsonEncode({
+        'id': model.id,
+        if (model.data != null) ...model.data!,
+      });
+
       await _localNotifications.show(
-        Random().nextInt(999999),
+        notificationId,
         model.title,
         model.body,
         details,
-        payload: model.id,
+        payload: payload,
       );
       synclyLogger.log("📳 Local notification shown: ${model.title}");
     } catch (e, s) {
@@ -232,17 +239,39 @@ class NotificationService {
   }
 
   Future<void> _onLocalNotificationTapped(NotificationResponse response) async {
-    final id = response.payload;
-    synclyLogger.log("👆 Local notification tapped, ID: $id");
+    final payload = response.payload;
+    synclyLogger.log("👆 Local notification tapped, payload: $payload");
 
-    if (id == null) return;
+    if (payload == null || payload.isEmpty) return;
 
     try {
-      final model = await NotificationStorageService.getNotificationById(id);
-      if (model != null && model.data != null) {
-        _handleNavigation(model.data!);
+      Map<String, dynamic>? data;
+      String? notificationId;
+
+      try {
+        final decoded = jsonDecode(payload);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+          notificationId = (decoded['id'] ?? '').toString();
+        }
+      } catch (_) {
+        notificationId = payload;
       }
-      await NotificationStorageService.markAsRead(id);
+
+      if (data != null && data.containsKey('type')) {
+        _handleNavigation(data);
+      } else if (notificationId != null && notificationId.isNotEmpty) {
+        final model = await NotificationStorageService.getNotificationById(
+          notificationId,
+        );
+        if (model?.data != null) {
+          _handleNavigation(model!.data!);
+        }
+      }
+
+      if (notificationId != null && notificationId.isNotEmpty) {
+        await NotificationStorageService.markAsRead(notificationId);
+      }
     } catch (e, s) {
       synclyLogger.log("❌ Error handling tap: $e\n$s");
     }

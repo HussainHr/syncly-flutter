@@ -41,16 +41,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  Future<void> _google() async {
-    FocusScope.of(context).unfocus();
-    final ok = await ref.read(authUiControllerProvider.notifier).loginWithGoogle();
-    if (!mounted) return;
-    if (ok) {
-      showToast('Signed in with Google');
-      context.go('/'); // auth boundary (redirect target)
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authUiControllerProvider);
@@ -187,18 +177,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         child: CircularProgressIndicator(strokeWidth: 2),
                                       )
                                     : const Text('Sign in'),
-                              ),
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: state.loading ? null : _google,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
-                                label: const Text('Continue with Google'),
                               ),
                               const SizedBox(height: 10),
                               Row(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syncly/core/constants/app_colors.dart';
 import 'package:syncly/core/utils/toast_message.dart';
+import 'package:syncly/features/auth/domain/entities/user_role.dart';
 import 'package:syncly/features/auth/presentation/providers/auth_controller.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+  UserRole _role = UserRole.member;
 
   @override
   void dispose() {
@@ -35,6 +37,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           name: _name.text,
           email: _email.text,
           password: _password.text,
+          role: _role,
         );
     if (!mounted) return;
     if (ok) {
@@ -88,7 +91,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Start chatting in seconds.',
+                      'Choose your role and create your account.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(context)
                                 .textTheme
@@ -170,6 +173,81 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   return null;
                                 },
                               ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Account type',
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                              const SizedBox(height: 10),
+                              ...UserRole.values.map((role) {
+                                final selected = _role == role;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(14),
+                                    onTap: state.loading
+                                        ? null
+                                        : () => setState(() => _role = role),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: selected
+                                              ? colorScheme.primary
+                                              : colorScheme.outlineVariant,
+                                        ),
+                                        color: selected
+                                            ? colorScheme.primary.withValues(alpha: 0.08)
+                                            : colorScheme.surface,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            role == UserRole.host
+                                                ? Icons.admin_panel_settings_outlined
+                                                : Icons.person_outline,
+                                            color: selected
+                                                ? colorScheme.primary
+                                                : colorScheme.onSurfaceVariant,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  role.label,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        fontWeight: FontWeight.w800,
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  role.description,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: colorScheme.onSurfaceVariant,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (selected)
+                                            Icon(Icons.check_circle, color: colorScheme.primary),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
                               const SizedBox(height: 14),
                               FilledButton(
                                 onPressed: state.loading ? null : _signUp,

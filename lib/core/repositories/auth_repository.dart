@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncly/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:syncly/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:syncly/features/auth/domain/entities/user_role.dart';
 import 'package:syncly/features/auth/domain/repositories/auth_repository.dart'
     as feature;
 
@@ -38,11 +39,13 @@ class AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    required UserRole role,
   }) =>
       _repo.signUpWithEmail(
         email: email,
         password: password,
         displayName: displayName,
+        role: role,
       );
 
   Future<User> signInWithGoogle() => _repo.signInWithGoogle();

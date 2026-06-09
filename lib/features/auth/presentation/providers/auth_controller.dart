@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncly/core/repositories/auth_repository.dart';
+import 'package:syncly/features/auth/domain/entities/user_role.dart';
 
 @immutable
 class AuthUiState {
@@ -79,6 +80,7 @@ class AuthUiController extends StateNotifier<AuthUiState> {
     required String name,
     required String email,
     required String password,
+    required UserRole role,
   }) async {
     state = state.copyWith(loading: true, error: null);
     try {
@@ -86,6 +88,7 @@ class AuthUiController extends StateNotifier<AuthUiState> {
         displayName: name.trim(),
         email: email.trim(),
         password: password,
+        role: role,
       );
       state = state.copyWith(loading: false, error: null);
       return true;

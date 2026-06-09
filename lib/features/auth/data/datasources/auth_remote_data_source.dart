@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../domain/entities/user_role.dart';
 import '../models/chat_user_model.dart';
 
 class AuthRemoteDataSource {
@@ -79,6 +80,7 @@ class AuthRemoteDataSource {
     String? displayName,
     String? photoUrl,
     bool? isOnline,
+    UserRole? role,
   }) async {
     final now = DateTime.now();
     final ref = _userDoc(firebaseUser.uid);
@@ -106,6 +108,9 @@ class AuthRemoteDataSource {
       map['displayNameLowercase'] = normalizedName.toLowerCase();
     }
     map.putIfAbsent('bio', () => '');
+    if (role != null) {
+      map['role'] = role.toFirestore();
+    }
     await ref.set(map, SetOptions(merge: true));
     return model;
   }
